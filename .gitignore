@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+.vscode
+scripts/logs
+slack_token.txt
+*.png
+gripper_example_local.py
+servo_errors

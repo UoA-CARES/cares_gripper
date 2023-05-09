@@ -18,31 +18,44 @@ class GripperNode(Node):
         self._action_server = ActionServer(
             self,
             Command,
-            f"gripper-{gripper_config.gripper_id}",
+            f"gripper_{0}",
             self.execute_callback)
         
+        # self._action_server = ActionServer(
+        #     self,
+        #     Command,
+        #     f"gripper-{gripper_config.gripper_id}",
+        #     self.execute_callback)
+        
         # self.gripper = Gripper(gripper_config)
+
+    def stop(self, goal_handle):
+        self.get_logger().info('Stopping')
+
+    def move_position(self, goal_handle):
+        self.get_logger().info('Moving Position')
+
+    def move_velocity(self, goal_handle):
+        self.get_logger().info('Moving Velocity')
 
     def execute_callback(self, goal_handle):
         self.get_logger().info('Executing goal...')
 
-        # feedback_msg = Fibonacci.Feedback()
-        # feedback_msg.partial_sequence = [0, 1]
+        goal_handle.succeed()
 
-        # for i in range(1, goal_handle.request.order):
-        #     feedback_msg.partial_sequence.append(
-        #         feedback_msg.partial_sequence[i] + feedback_msg.partial_sequence[i-1])
-        #     self.get_logger().info('Feedback: {0}'.format(feedback_msg.partial_sequence))
-        #     goal_handle.publish_feedback(feedback_msg)
-        #     time.sleep(1)
+        command = goal_handle.request.command
+        if command == Command.Goal.STOP:
+            self.stop(goal_handle)
+        elif command == Command.Goal.MOVE_POSITION:
+            self.move_position(goal_handle)
+        elif command == Command.Goal.MOVE_VELOCITY:
+            self.move_velocity(goal_handle)
 
-        # goal_handle.succeed()
+        # feedback_msg = Command.Feedback()
+        # goal_handle.publish_feedback(feedback_msg)
 
-        # result = Fibonacci.Result()
-        # result.sequence = feedback_msg.partial_sequence
-        # return result
         result = Command.Result()
-        result.status = 1
+        result.status = Command.Feedback.OK
         return result
     
     def step(self):
@@ -57,7 +70,7 @@ def parse_args():
 def main(args=None):
     rclpy.init(args=args)
 
-    gripper_config = GripperConfig()
+    gripper_config = ""#GripperConfig()
     gripper_node = GripperNode(gripper_config)
 
     while rclpy.ok():
