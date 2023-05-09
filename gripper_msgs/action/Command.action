@@ -1,7 +1,10 @@
 uint8 STOP = 0
-uint8 MOVE_POSITION = 1
-uint8 MOVE_VELOCITY = 2
+uint8 HOME = 1
+uint8 MOVE_POSITION = 2
+uint8 MOVE_VELOCITY = 3
 uint8 command
+
+int32 timeout 5 # default time to time out on a move position command
 
 int32[] action
 ---
@@ -11,6 +14,6 @@ uint8 status
 
 int32[] state
 ---
-uint8 result
+uint8 status
 
 int32[] state
