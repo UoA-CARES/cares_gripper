@@ -1,5 +1,5 @@
 import logging
-from time import time
+from time import time, sleep
 
 import rclpy
 from rclpy.node import Node
@@ -24,7 +24,7 @@ def exception_handler(error_message):
                 function(self, *args, **kwargs)
                 return True
             except GripperError as error:
-                logging.error(f"Dynamixel#{error.servo.motor_id}: {error_message}")
+                logging.error(f"Gripper: {error_message}")
                 return False
         return wrapper
     return decorator
@@ -35,7 +35,7 @@ def timing(function):
         t_start = time()
         result = function(*args, **kw)
         t_end = time()
-        logging.error('func:%r args:[%r, %r] took: %2.4f ms' % \
+        logging.info('func:%r args:[%r, %r] took: %2.4f ms' % \
           (function.__name__, args, kw, (t_end-t_start)*1000))
         return result
     return wrap
@@ -56,13 +56,14 @@ class GripperNode(Node):
         self._action_server = ActionServer(
             self,
             Command,
-            f"gripper_{0}",
+            f"gripper_{gripper_config.gripper_id}",
             self.execute_callback)
 
     @timing
     @exception_handler("Fault during step")
     def step(self):
-        self.gripper.step()
+        state = self.gripper.step()
+        # self.get_logger().info(f"{state}")
 
     @exception_handler("Fault during stop")
     def stop(self, goal_handle):
@@ -118,7 +119,7 @@ class GripperNode(Node):
 
         self.gripper.move_velocity(action, set_only=False)
 
-        feedback_msg.status = Command.Result.OK
+        feedback_msg.status = Command.Result.OK        
         goal_handle.publish_feedback(feedback_msg)
 
     def execute_callback(self, goal_handle):
@@ -141,6 +142,12 @@ class GripperNode(Node):
         result.status = Command.Result.OK
         if not success:
             result.status = Command.Result.ERROR
+            return result
+        
+        state = self.gripper.state()
+        result.positions   = state["positions"]
+        result.velocities  = state["velocities"]
+        result.loads       = state["loads"]
         return result
     
 def main(args=None):

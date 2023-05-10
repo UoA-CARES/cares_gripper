@@ -5,9 +5,7 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration, TextSubstitution
 
 def generate_launch_description():
-    gripper_config_launch_arg = DeclareLaunchArgument(
-      'gripper_config', default_value=TextSubstitution(text='0')
-    )
+    gripper_config_launch_arg = DeclareLaunchArgument('gripper_config')
 
     return LaunchDescription([
         gripper_config_launch_arg,
