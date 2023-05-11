@@ -36,6 +36,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/Command.action"
+  "msg/State.msg"
 )
 
 ament_package()

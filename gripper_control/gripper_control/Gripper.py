@@ -70,7 +70,7 @@ class Gripper(object):
 
         try:
             for id in range(1, self.num_motors + 1):
-                led = id % 7 + 1
+                led = id % 7
                 self.servos[id] = Servo(self.port_handler, self.packet_handler, self.protocol, id, led,
                                         config.torque_limit, config.speed_limit, self.max_values[id - 1],
                                         self.min_values[id - 1])
@@ -118,8 +118,23 @@ class Gripper(object):
 
     @exception_handler("Failed to step")
     def step(self):
-        for _, servo in self.servos.items():
-            servo.step()
+        state = self.state()
+        for motor_id, servo in self.servos.items():
+            index = motor_id - 1
+            current_position = state["positions"][index]
+            current_velocity = Servo.velocity_to_int(state["velocities"][index])
+
+            control_mode = servo.control_mode()
+            if control_mode == ControlMode.JOINT.value:
+                return state
+
+            logging.debug(f"Current Velocity {current_velocity} : {servo.min} < {current_position} < {servo.max}")
+            if (current_position >= servo.max and current_velocity > 0) or \
+                (current_position <= servo.min and current_velocity < 0):
+                logging.warn(f"Dynamixel#{motor_id}: position out of boundry, stopping servo")
+                servo.move_velocity(0)
+
+        return state
 
     @exception_handler("Failed to read current position")
     def current_positions(self):
